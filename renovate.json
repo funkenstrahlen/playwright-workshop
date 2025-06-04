@@ -1,6 +1,162 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
-  ]
+    "config:recommended",
+    ":maintainLockFilesWeekly",
+    ":semanticPrefixFixDepsChoreOthers",
+    ":automergeDigest",
+    ":automergeBranch",
+    "group:monorepos",
+    "group:recommended"
+  ],
+  "schedule": ["before 6am on monday"],
+  "timezone": "Europe/Berlin",
+  "dependencyDashboard": true,
+  "assignees": [],
+  "reviewers": [],
+  "labels": ["dependencies"],
+  "prConcurrentLimit": 3,
+  "prHourlyLimit": 2,
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security", "vulnerability"],
+    "assignees": [],
+    "reviewers": []
+  },
+  "packageRules": [
+    {
+      "description": "Group Next.js and React ecosystem updates",
+      "groupName": "React/Next.js ecosystem",
+      "matchPackageNames": [
+        "next",
+        "react",
+        "react-dom",
+        "@types/react",
+        "@types/react-dom",
+        "next-auth",
+        "next-themes",
+        "eslint-config-next"
+      ],
+      "schedule": ["before 6am on monday"]
+    },
+    {
+      "description": "Group HeroUI component library updates",
+      "groupName": "HeroUI components",
+      "matchPackagePatterns": ["^@heroui/"],
+      "schedule": ["before 6am on monday"]
+    },
+    {
+      "description": "Group React Aria updates",
+      "groupName": "React Aria",
+      "matchPackagePatterns": ["^@react-aria/", "^@react-types/"],
+      "schedule": ["before 6am on monday"]
+    },
+    {
+      "description": "Group Playwright testing dependencies",
+      "groupName": "Playwright testing",
+      "matchPackageNames": ["@playwright/test"],
+      "schedule": ["before 6am on monday"]
+    },
+    {
+      "description": "Group ESLint and code quality tools",
+      "groupName": "Code quality tools",
+      "matchPackageNames": [
+        "eslint",
+        "prettier",
+        "@eslint/eslintrc",
+        "eslint-config-prettier",
+        "eslint-plugin-prettier",
+        "husky",
+        "lint-staged"
+      ],
+      "schedule": ["before 6am on monday"]
+    },
+    {
+      "description": "Group TypeScript and related packages",
+      "groupName": "TypeScript",
+      "matchPackageNames": ["typescript", "@types/node", "@types/uuid"],
+      "schedule": ["before 6am on monday"]
+    },
+    {
+      "description": "Group Tailwind CSS ecosystem",
+      "groupName": "Tailwind CSS",
+      "matchPackageNames": [
+        "tailwindcss",
+        "autoprefixer",
+        "postcss",
+        "tailwind-variants"
+      ],
+      "schedule": ["before 6am on monday"]
+    },
+    {
+      "description": "Auto-merge patch updates for stable packages",
+      "matchUpdateTypes": ["patch"],
+      "matchPackageNames": [
+        "clsx",
+        "uuid",
+        "zod",
+        "swr",
+        "bcryptjs",
+        "framer-motion",
+        "intl-messageformat",
+        "rss-parser",
+        "dotenv",
+        "is-ci"
+      ],
+      "automerge": true
+    },
+    {
+      "description": "Auto-merge minor updates for dev dependencies",
+      "matchUpdateTypes": ["minor"],
+      "matchDepTypes": ["devDependencies"],
+      "matchPackageNames": [
+        "@types/node",
+        "@types/react",
+        "@types/react-dom",
+        "@types/uuid",
+        "prettier",
+        "eslint-config-prettier",
+        "eslint-plugin-prettier"
+      ],
+      "automerge": true
+    },
+    {
+      "description": "Hold back major updates that might need manual testing",
+      "matchUpdateTypes": ["major"],
+      "matchPackageNames": [
+        "next",
+        "react",
+        "react-dom",
+        "@playwright/test",
+        "typescript",
+        "eslint",
+        "tailwindcss"
+      ],
+      "dependencyDashboardApproval": true,
+      "addLabels": ["needs-review", "major-update"]
+    },
+    {
+      "description": "Weekly updates for lock file maintenance",
+      "matchUpdateTypes": ["lockFileMaintenance"],
+      "schedule": ["before 6am on monday"],
+      "automerge": true
+    }
+  ],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "automerge": true,
+    "schedule": ["before 6am on monday"]
+  },
+  "separateMinorPatch": true,
+  "separateMajorMinor": true,
+  "rangeStrategy": "bump",
+  "semanticCommits": "enabled",
+  "commitMessageTopic": "{{depName}}",
+  "commitMessageExtra": "to {{newVersion}}",
+  "commitMessageSuffix": "",
+  "branchPrefix": "renovate/",
+  "gitAuthor": "Renovate Bot <bot@renovateapp.com>",
+  "platformAutomerge": false,
+  "ignoreTests": false,
+  "stopUpdatingLabel": "renovate:stop-updating"
 }
