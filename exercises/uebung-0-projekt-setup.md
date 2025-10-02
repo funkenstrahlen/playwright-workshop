@@ -1,28 +1,75 @@
 # Übung 0 – Projekt-Setup
 
 **Ziel:**
-Du richtest ein Playwright-Testprojekt für die Next.js Feed Demo App ein und prüfst, ob die Testumgebung funktioniert.
+Du richtest ein Playwright-Testprojekt für die Next.js Feed Demo App ein mit automatischem Server-Start und Umgebungsvariablen.
 
 **Aufgaben:**
 
-1.  **Stelle sicher, dass du im Projektverzeichnis `playwright-workshop` bist.**
-2.  **Installiere alle Abhängigkeiten:**
-    - `npm install`
-    - `npx playwright install`
-3.  **Starte die Anwendung lokal:**
-    - `npm run dev`
-    - Die App läuft auf [http://localhost:3000](http://localhost:3000)
-4.  **(Falls noch nicht geschehen) Initialisiere ein Playwright-Projekt im Ordner `e2e/`:**
-    - `npx playwright test --init`
-    - Wähle TypeScript
-    - Wähle `e2e` als Testordner
-    - Füge einen GitHub Actions Workflow hinzu (optional)
-    - Installiere die Browser, falls gefragt
-5.  **Führe einen Beispieltest gegen die lokale App aus:**
-    - Erstelle einen Test (z.B. in `e2e/home.spec.ts`), der die Startseite (`/`) öffnet und prüft, ob die Überschrift "Welcome to the Playwright Demo App" sichtbar ist.
-6.  **Sieh dir die generierte Projektstruktur und die wichtigsten Konfigurationsdateien an (`playwright.config.ts`, `e2e/`).**
+1. **Projektverzeichnis vorbereiten:**
+   ```bash
+   cd playwright-workshop
+   npm install
+   npx playwright install chromium  # Installiere mindestens einen Browser
+   ```
 
-**Zeit:** 15 Minuten
+2. **Umgebungsvariablen einrichten:**
+   - Erstelle eine `.env.test` Datei:
+   ```bash
+   # Test-Benutzer für Authentifizierung
+   TEST_USER_EMAIL=test@example.com
+   TEST_USER_PASSWORD=password123
+   ```
+
+3. **Playwright-Konfiguration mit webServer anpassen:**
+   - Öffne `playwright.config.ts` und aktiviere den webServer:
+   ```typescript
+   webServer: {
+     command: 'npm run dev',
+     url: 'http://localhost:3000',
+     reuseExistingServer: !process.env.CI,
+     timeout: 120 * 1000,
+   },
+   ```
+
+4. **Ersten Smoke-Test erstellen:**
+   - Erstelle `e2e/setup.spec.ts`:
+   ```typescript
+   import { test, expect } from '@playwright/test';
+
+   test('App ist erreichbar', async ({ page }) => {
+     await page.goto('/');
+
+     // Prüfe ob die App lädt
+     await expect(page).toHaveTitle(/Playwright Demo/);
+
+     // Prüfe ob Hauptnavigation vorhanden ist
+     await expect(page.getByRole('navigation').first()).toBeVisible();
+   });
+   ```
+
+5. **Test ausführen und verifizieren:**
+   ```bash
+   npx playwright test setup.spec.ts
+   # Server startet automatisch!
+   ```
+
+6. **Playwright UI kennenlernen:**
+   ```bash
+   npx playwright test --ui
+   # Erkunde die interaktive Test-Oberfläche
+   ```
+
+**Projekt-Struktur nach Setup:**
+```
+playwright-workshop/
+├── .env.test              # Umgebungsvariablen
+├── playwright.config.ts   # Hauptkonfiguration
+├── e2e/
+│   └── setup.spec.ts     # Erster Test
+└── playwright/.auth/     # (wird später für Auth genutzt)
+```
+
+**Zeit:** 10 Minuten
 
 ---
 

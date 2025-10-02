@@ -1,44 +1,200 @@
 # Übung 5 – API Mocking
 
 **Ziel:**
-Du lernst, wie du Netzwerkanfragen in Playwright abfangen und mocken kannst, um Tests für die Next.js Feed App unabhängiger vom Backend zu machen und spezifische Szenarien (Fehlerfälle, leere Daten, Ladezustände) zu simulieren. Fokus: Public News Seite (`/news/public`).
+Du lernst, wie du API-Antworten mockst um Tests unabhängiger, schneller und zuverlässiger zu machen. Der Fokus liegt auf häufigen Szenarien: Success, Error und Loading States.
 
-**Vorbereitetes Utility:**
-Im Repository steht dir ein News-Generator unter `e2e/utils/newsGenerator.ts` zur Verfügung. Dieser bietet verschiedene Funktionen zum Erstellen von Mock-Daten für News-Artikel:
-
-- `createMockNewsItem()`: Erstellt ein einzelnes News-Item mit benutzerdefinierten Eigenschaften
-- `createMockNewsCollection()`: Erstellt eine Sammlung von mehreren News-Items
-- `createMockNewsWithCategories()`: Erstellt News-Items in bestimmten Kategorien
-- `createRealisticNewsCollection()`: Erstellt eine realistische Sammlung von News-Items
-- `createSampleNewsFromRealData()`: Gibt Beispieldaten basierend auf echten News zurück
+**Warum API Mocking?**
+- Tests sind unabhängig vom Backend
+- Schnellere Test-Ausführung
+- Testen von Edge Cases (Fehler, leere Daten)
+- Konsistente Test-Daten
 
 **Aufgaben:**
 
-1. **Test für Erfolgsfall (ohne Mocking – optional):**
-   - Schreibe einen Test, der `/news/public` öffnet und prüft, ob News-Artikel von der echten API (`/api/news/public`) geladen und angezeigt werden.
+1. **Mock-Daten vorbereiten:**
+   ```typescript
+   // e2e/mocks/news-mocks.ts
+   export const mockNewsData = {
+     success: {
+       items: [
+         {
+           title: 'Test Technology News',
+           link: 'https://example.com/tech-news',
+           description: 'Dies ist ein Test-Artikel über Technologie',
+           pubDate: 'Mon, 01 Jan 2024 10:00:00 GMT',
+           category: 'Technology',
+           source: 'Test Source',
+           snippet: 'Ein kurzer Auszug des Artikels',
+           isoDate: '2024-01-01T10:00:00.000Z'
+         },
+         {
+           title: 'Test Business News',
+           link: 'https://example.com/business-news',
+           description: 'Ein wichtiger Business-Artikel für Tests',
+           pubDate: 'Tue, 02 Jan 2024 14:30:00 GMT',
+           category: 'Business',
+           source: 'Test Source',
+           snippet: 'Business News Zusammenfassung',
+           isoDate: '2024-01-02T14:30:00.000Z'
+         }
+       ]
+     },
+     empty: {
+       items: []
+     }
+   };
+   ```
 
-2. **Mocking für Erfolgsfall:**
-   - Erstelle einen neuen Testfall.
-   - Verwende `page.route('**/api/news/public', ...)` um Anfragen abzufangen.
-   - Nutze den bereitgestellten News-Generator (z.B. `createMockNewsCollection()` oder `createSampleNewsFromRealData()`) für die Mock-Daten.
-   - Simuliere mit `route.fulfill()` eine erfolgreiche JSON-Antwort mit den Mock-Daten.
-   - Navigiere zur `/news/public`-Seite.
-   - Prüfe, ob die gemockten Daten angezeigt werden (z.B. Titel sichtbar, Anzahl Listeneinträge korrekt).
+2. **Erfolgreiche API-Antwort mocken:**
+   ```typescript
+   import { test, expect } from '@playwright/test';
+   import { mockNewsData } from './mocks/news-mocks';
 
-3. **Mocking für Fehlerfall:**
-   - Schreibe einen Test, der einen API-Fehler (z.B. Status 500) für `/api/news/public` simuliert.
-   - Prüfe, ob die Anwendung eine Fehlermeldung anzeigt.
+   test('zeigt gemockte News-Daten', async ({ page }) => {
+     // Mock API bevor die Seite geladen wird
+     await page.route('**/api/news/public', async (route) => {
+       await route.fulfill({
+         status: 200,
+         contentType: 'application/json',
+         body: JSON.stringify(mockNewsData.success)
+       });
+     });
 
-4. **Mocking für leere Daten:**
-   - Schreibe einen Test, der eine erfolgreiche Antwort mit leerem `items`-Array simuliert.
-   - Prüfe, ob die Anwendung den "Keine Daten gefunden"-Zustand korrekt anzeigt.
+     // Navigiere zur Seite
+     await page.goto('/news/public');
 
-5. **Mocking mit Verzögerung (optional):**
-   - Schreibe einen Test, der eine langsame Netzwerkantwort simuliert (mit `await new Promise(resolve => setTimeout(resolve, 2000))`).
-   - Prüfe, ob während der Verzögerung ein Ladeindikator sichtbar ist und nach der Verzögerung die Daten korrekt angezeigt werden.
+     // Prüfe ob Mock-Daten angezeigt werden
+     const newsItems = page.getByRole('listitem');
+     await expect(newsItems).toHaveCount(2);
 
-**Zeit:** 30 Minuten
+     // Prüfe spezifische Inhalte
+     await expect(page.getByText('Test News 1')).toBeVisible();
+     await expect(page.getByText('Test News 2')).toBeVisible();
+   });
+   ```
+
+3. **Fehlerfall testen:**
+   ```typescript
+   test('zeigt Fehlermeldung bei API-Fehler', async ({ page }) => {
+     // Mock API-Fehler
+     await page.route('**/api/news/public', async (route) => {
+       await route.fulfill({
+         status: 500,
+         contentType: 'application/json',
+         body: JSON.stringify({ error: 'Internal Server Error' })
+       });
+     });
+
+     await page.goto('/news/public');
+
+     // Prüfe Fehler-UI
+     await expect(page.getByRole('alert')).toBeVisible();
+     await expect(page.getByText(/error|fehler/i)).toBeVisible();
+
+     // News-Liste sollte nicht angezeigt werden
+     await expect(page.getByRole('list', { name: 'News articles' })).not.toBeVisible();
+   });
+   ```
+
+4. **Leere Daten testen:**
+   ```typescript
+   test('zeigt Empty State bei leeren Daten', async ({ page }) => {
+     // Mock leere Antwort
+     await page.route('**/api/news/public', async (route) => {
+       await route.fulfill({
+         status: 200,
+         contentType: 'application/json',
+         body: JSON.stringify(mockNewsData.empty)
+       });
+     });
+
+     await page.goto('/news/public');
+
+     // Prüfe Empty State
+     await expect(page.getByText(/keine news|no news/i)).toBeVisible();
+     await expect(page.getByRole('listitem')).toHaveCount(0);
+   });
+   ```
+
+5. **Loading State testen (mit Delay):**
+   ```typescript
+   test('zeigt Loading State während API-Call', async ({ page }) => {
+     // Mock mit Verzögerung
+     await page.route('**/api/news/public', async (route) => {
+       // 2 Sekunden warten
+       await new Promise(resolve => setTimeout(resolve, 2000));
+
+       await route.fulfill({
+         status: 200,
+         contentType: 'application/json',
+         body: JSON.stringify(mockNewsData.success)
+       });
+     });
+
+     // Starte Navigation (nicht await!)
+     const navigationPromise = page.goto('/news/public');
+
+     // Prüfe Loading State
+     await expect(page.getByRole('status', { name: /loading|lädt/i })).toBeVisible();
+
+     // Warte auf Navigation
+     await navigationPromise;
+
+     // Loading sollte verschwunden sein
+     await expect(page.getByRole('status', { name: /loading|lädt/i })).not.toBeVisible();
+
+     // Daten sollten angezeigt werden
+     await expect(page.getByRole('listitem')).toHaveCount(2);
+   });
+   ```
+
+6. **Dynamisches Mocking (basierend auf Request):**
+   ```typescript
+   test('mockt basierend auf Suchparametern', async ({ page }) => {
+     await page.route('**/api/news/public*', async (route, request) => {
+       const url = new URL(request.url());
+       const search = url.searchParams.get('search');
+
+       if (search === 'test') {
+         // Gebe gefilterte Ergebnisse zurück
+         await route.fulfill({
+           status: 200,
+           body: JSON.stringify({
+             items: [mockNewsData.success.items[0]]
+           })
+         });
+       } else {
+         // Gebe alle Daten zurück
+         await route.fulfill({
+           status: 200,
+           body: JSON.stringify(mockNewsData.success)
+         });
+       }
+     });
+
+     await page.goto('/news/public');
+
+     // Initiale Daten
+     await expect(page.getByRole('listitem')).toHaveCount(2);
+
+     // Suche durchführen
+     await page.getByRole('textbox', { name: 'Search news' }).fill('test');
+     await page.waitForLoadState('networkidle');
+
+     // Gefilterte Daten
+     await expect(page.getByRole('listitem')).toHaveCount(1);
+   });
+   ```
+
+**Best Practices:**
+- ✅ Mocke APIs vor dem Navigieren zur Seite
+- ✅ Teste Success, Error und Loading States
+- ✅ Verwende realistische Mock-Daten
+- ✅ Nutze `waitForLoadState()` nach dynamischen Aktionen
+- ❌ Mocke nicht zu viel - manchmal sind echte API-Calls besser
+
+**Zeit:** 25 Minuten
 
 ---
 
-> **Tipp:** Verwende `page.route()` und `route.fulfill()` um API-Antworten gezielt zu steuern. Achte darauf, dass deine Mock-Daten der erwarteten API-Struktur entsprechen. Verwende ausschließlich semantische, benutzerorientierte Selektoren (`getByRole`, `getByLabel`, `getByText`, etc.) zur Prüfung der UI-Elemente.
+> **Tipp:** Mit `npx playwright test --debug` kannst du im Network-Tab sehen, welche Requests gemockt wurden und welche durchgingen!

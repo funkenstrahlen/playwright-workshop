@@ -1,66 +1,123 @@
-# Übung 2 – Filtertest im News Feed
+# Übung 2 – News Feed Suche testen
 
 **Ziel:**
-Du testest die Filter- und Suchfunktionen auf der öffentlichen News-Feed-Seite der Next.js Feed Demo App.
+Du testest die Suchfunktion auf der öffentlichen News-Feed-Seite. Dabei lernst du Test-Organisation mit `beforeEach`, Formular-Interaktionen und das Arbeiten mit dynamischen Inhalten.
 
 **Aufgaben:**
 
-1.  Erstelle einen neuen Testfall in einer Datei `e2e/nav.spec.ts` oder ähnlich.
-2.  **Erstelle eine Test-Suite mit beforeEach:**
-    -   Verwende `test.describe('News Feed Filter & Suche', () => {...});`
-    -   Füge einen `test.beforeEach`-Hook hinzu, der zur Seite `/news/public` navigiert.
-3.  **Teste die initiale Anzeige:**
-    -   Erstelle einen Test `'zeigt News-Items an'` 
-    -   Wähle die News-Liste mit `page.getByRole('list', { name: 'News articles' })`
-    -   Prüfe, ob die Liste sichtbar ist und genau 65 Listenelemente enthält
-4.  **Teste die Suchfunktion:**
-    -   Erstelle einen Test `'filtert News per Suchfeld'`
-    -   Finde das Suchfeld mit `page.getByRole('textbox', { name: 'Search news' })`
-    -   Gib den Suchbegriff "Foo" ein und prüfe, dass keine Artikel angezeigt werden
-    -   Gib den Suchbegriff "Revelo" ein und prüfe, dass genau 1 Artikel angezeigt wird
-    -   Leere das Suchfeld und prüfe, dass wieder alle 65 Artikel angezeigt werden
-5.  **Teste die Kategorie-Filterung:**
-    -   Erstelle einen Test `'filtert News per Kategorie'`
-    -   Finde das Kategorie-Dropdown mit `page.getByLabel('Filter news by category')`
-    -   Wähle die Kategorie "Technology" und prüfe, dass genau 40 Artikel angezeigt werden
-    -   Prüfe, dass der erste angezeigte Artikel den Text "Technology" enthält
-    -   Wähle wieder "All Categories" aus und prüfe, dass wieder alle 65 Artikel angezeigt werden
-6.  **Aktiviere die Trace-Aufzeichnung in `playwright.config.ts` (z.B. `trace: 'on'`) und führe den Test aus.**
-    -   Stelle sicher, dass `trace: 'on'` oder `trace: 'retain-on-failure'` in der `use`-Sektion deiner `playwright.config.ts` gesetzt ist.
-7.  **Öffne den HTML-Report (`npx playwright show-report`) und analysiere den Trace für den Testlauf.**
+1. **Test-Suite mit Setup erstellen:**
+   ```typescript
+   import { test, expect } from '@playwright/test';
 
-**Zeit:** 25 Minuten
+   test.describe('News Feed Suche', () => {
+     // Vor jedem Test zur News-Seite navigieren
+     test.beforeEach(async ({ page }) => {
+       await page.goto('/news/public');
+
+       // Warte bis die News geladen sind
+       await expect(page.getByRole('list', { name: 'News articles' })).toBeVisible();
+     });
+
+     // Tests kommen hier...
+   });
+   ```
+
+2. **Initiale Anzeige testen:**
+   ```typescript
+   test('zeigt alle News-Artikel initial an', async ({ page }) => {
+     // Finde die News-Liste
+     const newsList = page.getByRole('list', { name: 'News articles' });
+     const newsItems = newsList.getByRole('listitem');
+
+     // Prüfe die Anzahl der Artikel (65 items im feed.json)
+     await expect(newsItems).toHaveCount(65);
+
+     // Prüfe ob der erste Artikel sichtbar ist
+     await expect(newsItems.first()).toBeVisible();
+   });
+   ```
+
+3. **Suchfunktion implementieren:**
+   ```typescript
+   test('kann nach News suchen', async ({ page }) => {
+     // Finde das Suchfeld
+     const searchInput = page.getByRole('textbox', { name: 'Search news' });
+     await expect(searchInput).toBeVisible();
+
+     // Suche nach einem Begriff der keine Ergebnisse liefert
+     await searchInput.fill('XYZ123');
+     await searchInput.press('Enter'); // Oder warte auf auto-search
+
+     // Prüfe dass keine Artikel angezeigt werden
+     const newsItems = page.getByRole('listitem');
+     await expect(newsItems).toHaveCount(0);
+
+     // Leere Suche und prüfe Reset
+     await searchInput.clear();
+     await expect(newsItems).toHaveCount(65);
+
+     // Suche nach existierendem Begriff
+     await searchInput.fill('Technology');
+
+     // Warte bis die Filterung angewendet wurde
+     await expect(newsItems.first()).toContainText('Technology');
+
+     // Prüfe dass weniger Artikel angezeigt werden
+     const count = await newsItems.count();
+     expect(count).toBeLessThan(65);
+     expect(count).toBeGreaterThan(0);
+   });
+   ```
+
+4. **Erweiterte Suche mit Assertions:**
+   ```typescript
+   test('zeigt Suchergebnisse korrekt an', async ({ page }) => {
+     const searchInput = page.getByRole('textbox', { name: 'Search news' });
+     const newsList = page.getByRole('list', { name: 'News articles' });
+
+     // Suche nach spezifischem Artikel (tatsächlich im Feed vorhanden)
+     await searchInput.fill('Revelo');
+
+     // Warte bis genau 1 Ergebnis angezeigt wird
+     await expect(newsList.getByRole('listitem')).toHaveCount(1);
+
+     // Prüfe den Inhalt des Ergebnisses
+     const result = newsList.getByRole('listitem').first();
+     await expect(result).toContainText('Revelo');
+
+     // Optional: Prüfe weitere Details
+     const headline = result.getByRole('heading');
+     await expect(headline).toBeVisible();
+   });
+   ```
+
+5. **Trace für Debugging aktivieren:**
+   - In `playwright.config.ts`:
+   ```typescript
+   use: {
+     trace: 'retain-on-failure', // Trace nur bei Fehlern
+     screenshot: 'only-on-failure',
+   },
+   ```
+
+6. **Tests ausführen und Trace analysieren:**
+   ```bash
+   # Tests ausführen
+   npx playwright test navigationstest.spec.ts
+
+   # Bei Fehler: Trace öffnen
+   npx playwright show-report
+   ```
+
+**Was du lernst:**
+- Test-Organisation mit `describe` und `beforeEach`
+- Formular-Interaktionen (fill, clear, press)
+- Dynamische Assertions mit count()
+- Arbeiten mit Listen von Elementen
+- Trace-Viewer für Debugging
+
+**Zeit:** 20 Minuten
 
 ---
 
-> **Tipp:** Nutze die folgenden Playwright-Funktionen:
-> - `page.goto()` für die Navigation
-> - `page.getByRole()` und `page.getByLabel()` für semantische Selektoren
-> - `locator.fill()` für das Ausfüllen von Textfeldern
-> - `locator.selectOption()` für die Auswahl in Dropdowns
-> - `expect(locator).toBeVisible()` zum Prüfen der Sichtbarkeit
-> - `expect(locator).toHaveCount()` zum Prüfen der Anzahl von Elementen
-> - `expect(locator).toContainText()` zum Prüfen des Textinhalts
-
-```typescript
-// Beispielstruktur deines Tests
-import { test, expect } from '@playwright/test';
-
-test.describe('News Feed Filter & Suche', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/news/public');
-  });
-
-  test('zeigt News-Items an', async ({ page }) => {
-    // Code hier
-  });
-
-  test('filtert News per Suchfeld', async ({ page }) => {
-    // Code hier
-  });
-
-  test('filtert News per Kategorie', async ({ page }) => {
-    // Code hier
-  });
-});
-```
+> **Tipp:** Der Trace-Viewer zeigt jeden Schritt deines Tests mit Screenshots, Netzwerk-Aktivität und Console-Logs. Perfekt um zu verstehen, was während des Tests passiert!
