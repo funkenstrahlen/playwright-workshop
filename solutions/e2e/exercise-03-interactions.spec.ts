@@ -28,6 +28,10 @@ test.describe('Übung 3 - Erste Interaktionen (ohne Assertions)', () => {
   });
 
   test('Tastatur-Eingaben üben', async ({ page }) => {
+    // Navigiere zur News-Seite für Suche
+    await page.goto('http://localhost:3000/news/public');
+    await page.waitForLoadState('networkidle');
+
     // 1. Suchfeld finden und Text eingeben
     const searchBox = page.getByPlaceholder('Search news...');
     await searchBox.click();
@@ -88,8 +92,12 @@ test.describe('Übung 3 - Erste Interaktionen (ohne Assertions)', () => {
   });
 
   test('Verschiedene Interaktionsmethoden', async ({ page }) => {
+    // Navigiere zur News-Seite für Artikel
+    await page.goto('http://localhost:3000/news/public');
+    await page.waitForLoadState('networkidle');
+
     // Hover über Elemente
-    const firstArticle = page.locator('article').first();
+    const firstArticle = page.getByRole('article').first();
     await firstArticle.hover();
     console.log('Hover über ersten Artikel');
     await page.waitForTimeout(500);
