@@ -16,18 +16,6 @@ export const siteConfig = {
       label: 'Private News',
       href: '/news/private',
     },
-    {
-      label: 'Pricing',
-      href: '/pricing',
-    },
-    {
-      label: 'Blog',
-      href: '/blog',
-    },
-    {
-      label: 'About',
-      href: '/about',
-    },
   ],
   navMenuItems: [
     {
@@ -41,18 +29,6 @@ export const siteConfig = {
     {
       label: 'Private News',
       href: '/news/private',
-    },
-    {
-      label: 'Pricing',
-      href: '/pricing',
-    },
-    {
-      label: 'Blog',
-      href: '/blog',
-    },
-    {
-      label: 'About',
-      href: '/about',
     },
     {
       label: 'Settings',
