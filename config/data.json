@@ -32,9 +32,9 @@
         "category": "Technology"
       },
       {
-        "id": "reuters-business",
-        "name": "Reuters Business",
-        "url": "https://www.reutersagency.com/feed/?best-topics=business",
+        "id": "reuters-financial",
+        "name": "Reuters Financial News",
+        "url": "https://ir.thomsonreuters.com/rss/news-releases.xml",
         "category": "Business"
       },
       {
