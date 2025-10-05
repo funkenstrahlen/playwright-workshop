@@ -16,6 +16,10 @@ export const siteConfig = {
       label: 'Private News',
       href: '/news/private',
     },
+    {
+      label: 'Clock',
+      href: '/clock',
+    },
   ],
   navMenuItems: [
     {
@@ -29,6 +33,10 @@ export const siteConfig = {
     {
       label: 'Private News',
       href: '/news/private',
+    },
+    {
+      label: 'Clock',
+      href: '/clock',
     },
     {
       label: 'Settings',
