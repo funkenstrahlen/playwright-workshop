@@ -5,50 +5,29 @@ const authFile = path.join(__dirname, '../../playwright/.auth/user.json');
 
 // Setup-Test für Authentifizierung
 setup.describe('Exercise 3: Authentication Setup', () => {
-  setup('authenticate as user', async ({ page, request }) => {
-    // Versuche zuerst API-Login (schneller)
-    try {
-      // API-Login Versuch
-      const response = await request.post('/api/auth/signin', {
-        data: {
-          email: process.env.TEST_USER_EMAIL || 'test@example.com',
-          password: process.env.TEST_USER_PASSWORD || 'password123'
-        }
-      });
-
-      if (response.ok()) {
-        // Speichere Auth State
-        await page.context().storageState({ path: authFile });
-        console.log('API Authentication successful');
-        return;
-      }
-    } catch (error) {
-      console.log('API login failed, falling back to UI login:', error);
-    }
-
-    // Fallback: UI-Login
+  setup('authenticate as user', async ({ page }) => {
+    // Use UI-Login for reliable authentication
     await page.goto('/auth/signin');
+    await page.waitForLoadState('networkidle');
 
     // Fülle Login-Formular aus
     const emailInput = page.getByRole('textbox', { name: 'Email address for sign in' });
-    const passwordInput = page.getByRole('textbox', { name: 'Password for sign in' });
+    const passwordInput = page.getByRole('textbox', { name: 'Password for sign in Password*' });
     const submitButton = page.getByRole('button', { name: 'Submit sign in form' });
 
     await emailInput.fill(process.env.TEST_USER_EMAIL || 'test@example.com');
-    await passwordInput.fill(process.env.TEST_USER_PASSWORD || 'password123');
+    await passwordInput.fill(process.env.TEST_USER_PASSWORD || 'password');
     await submitButton.click();
 
-    // Warte auf erfolgreiche Anmeldung
+    // Warte auf erfolgreiche Anmeldung (Umleitung zur Homepage)
     await page.waitForURL((url) => !url.pathname.includes('/auth/signin'), {
       timeout: 10000
     });
+    await page.waitForLoadState('networkidle');
 
-    // Prüfe ob angemeldet - suche nach Sign Out Button
-    const userMenu = page.getByRole('button', { name: /sign out|logout|user|profile/i });
-
-    await expect(userMenu.first()).toBeVisible({ timeout: 5000 }).catch(() => {
-      console.log('User menu not found, checking for other auth indicators');
-    });
+    // Prüfe ob angemeldet - User Profile Menu sollte sichtbar sein
+    const userMenu = page.getByRole('button', { name: /user profile actions menu/i });
+    await expect(userMenu).toBeVisible({ timeout: 5000 });
 
     // Speichere Storage State
     await page.context().storageState({ path: authFile });
@@ -65,83 +44,57 @@ test.describe('Exercise 3: Authenticated Tests', () => {
 
   test('kann auf private Inhalte zugreifen', async ({ page }) => {
     await page.goto('/');
+    await page.waitForLoadState('networkidle');
 
-    // Prüfe ob angemeldet
-    const signOutButton = page.getByRole('button', { name: /sign out|logout/i })
-      .or(page.getByRole('link', { name: /sign out|logout/i }));
-
-    const isSignOutVisible = await signOutButton.isVisible({ timeout: 3000 }).catch(() => false);
-
-    if (!isSignOutVisible) {
-      // Alternative: Prüfe User-Menu
-      const userMenu = page.getByRole('button', { name: /user|profile|account/i });
-      await expect(userMenu.first()).toBeVisible();
-    }
+    // Prüfe ob angemeldet - User Profile Menu sollte sichtbar sein
+    const userMenu = page.getByRole('button', { name: /user profile actions menu/i });
+    await expect(userMenu).toBeVisible();
 
     // Navigiere zu geschütztem Bereich (Settings)
     await page.goto('/settings');
+    await page.waitForLoadState('networkidle');
 
     // Sollte nicht zur Login-Seite umgeleitet werden
     await expect(page).not.toHaveURL(/auth\/signin/);
 
-    // Settings-Seite sollte sichtbar sein
-    const settingsHeading = page.getByRole('heading', { name: /settings|einstellungen/i });
-    await expect(settingsHeading.first()).toBeVisible({ timeout: 5000 }).catch(() => {
-      // Fallback: Prüfe URL
-      expect(page.url()).toContain('/settings');
-    });
+    // Settings-Seite sollte sichtbar sein - prüfe URL da Settings-Seite existiert
+    expect(page.url()).toContain('/settings');
   });
 
   test('zeigt Benutzerinformationen an', async ({ page }) => {
     await page.goto('/');
+    await page.waitForLoadState('networkidle');
 
     // Öffne User-Menü
-    const userMenuButton = page.getByRole('button', { name: /user|profile|account/i })
-      .or(page.getByTestId('user-menu-button'))
-      .or(page.locator('[aria-label*="user"]'));
+    const userMenuButton = page.getByRole('button', { name: /user profile actions menu/i });
+    await expect(userMenuButton).toBeVisible();
+    await userMenuButton.click();
 
-    if (await userMenuButton.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await userMenuButton.click();
-
-      // Prüfe ob Email angezeigt wird
-      const emailDisplay = page.getByText(process.env.TEST_USER_EMAIL || 'test@example.com');
-      const isEmailVisible = await emailDisplay.isVisible({ timeout: 2000 }).catch(() => false);
-
-      if (isEmailVisible) {
-        await expect(emailDisplay).toBeVisible();
-      }
-    }
+    // Prüfe ob Email im Menü angezeigt wird
+    const emailDisplay = page.getByText(process.env.TEST_USER_EMAIL || 'test@example.com');
+    await expect(emailDisplay).toBeVisible();
   });
 
   test('kann sich abmelden', async ({ page }) => {
     await page.goto('/');
+    await page.waitForLoadState('networkidle');
 
-    // Finde Sign Out Button
-    const signOutButton = page.getByRole('button', { name: /sign out|logout|abmelden/i })
-      .or(page.getByRole('link', { name: /sign out|logout|abmelden/i }));
+    // Öffne User-Menü
+    const userMenuButton = page.getByRole('button', { name: /user profile actions menu/i });
+    await expect(userMenuButton).toBeVisible();
+    await userMenuButton.click();
 
-    // Möglicherweise im User-Menü
-    const userMenuButton = page.getByRole('button', { name: /user|profile|account/i });
-    if (await userMenuButton.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await userMenuButton.click();
-      await page.waitForTimeout(300);
-    }
+    // Klicke auf Log Out
+    const logOutButton = page.getByRole('menuitem', { name: /log out/i });
+    await expect(logOutButton).toBeVisible();
+    await logOutButton.click();
 
-    // Klicke auf Abmelden
-    if (await signOutButton.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await signOutButton.click();
+    // Warte auf Umleitung zur Homepage
+    await page.waitForURL((url) => url.pathname === '/');
 
-      // Warte auf Umleitung
-      await page.waitForURL((url) => {
-        return url.pathname === '/' || url.pathname.includes('/auth/signin');
-      }, { timeout: 5000 });
-
-      // Prüfe ob abgemeldet
-      const signInButton = page.getByRole('button', { name: /sign in|login|anmelden/i })
-        .or(page.getByRole('link', { name: /sign in|login|anmelden/i }));
-
-      await expect(signInButton.first()).toBeVisible({ timeout: 5000 });
-    }
+    // Prüfe ob abgemeldet - Sign In Button sollte wieder sichtbar sein
+    const signInButton = page.getByRole('button', { name: /sign in to your account/i });
+    await expect(signInButton).toBeVisible({ timeout: 5000 });
   });
 });
 
@@ -152,7 +105,7 @@ setup('authenticate as admin', async ({ page }) => {
   await page.goto('/auth/signin');
 
   const emailInput = page.getByRole('textbox', { name: 'Email address for sign in' });
-  const passwordInput = page.getByRole('textbox', { name: 'Password for sign in' });
+  const passwordInput = page.getByRole('textbox', { name: 'Password for sign in Password*' });
   const submitButton = page.getByRole('button', { name: 'Submit sign in form' });
 
   // Admin-Credentials

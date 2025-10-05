@@ -246,47 +246,19 @@ test.describe('Exercise 7: Visual Regression Testing', () => {
       await page.goto('/');
       await page.waitForLoadState('networkidle');
 
-      // Find and click theme toggle
-      const themeToggleSelectors = [
-        '[data-testid="theme-toggle"]',
-        'button[aria-label*="theme" i]',
-        '.theme-toggle',
-        'button:has-text("🌙")',
-        'button:has-text("🌞")'
-      ];
+      // Find theme toggle switch
+      const themeToggle = page.getByRole('switch', { name: /switch to (light|dark) mode/i });
 
-      let themeToggle = null;
-      for (const selector of themeToggleSelectors) {
-        const element = page.locator(selector);
-        if (await element.count() > 0) {
-          themeToggle = element.first();
-          break;
-        }
-      }
+      // Toggle to dark mode
+      await expect(themeToggle).toBeVisible();
+      await themeToggle.click();
+      await page.waitForTimeout(500);
 
-      if (themeToggle) {
-        // Toggle to dark mode
-        await themeToggle.click();
-        await page.waitForTimeout(500);
-
-        // Check if toggle was successful
-        const isDarkMode = await page.locator('html[class*="dark"], body[class*="dark"], [data-theme="dark"]').count() > 0;
-
-        if (isDarkMode) {
-          await expect(page).toHaveScreenshot('dark-mode.png', {
-            fullPage: true,
-            animations: 'disabled'
-          });
-        } else {
-          console.log('Dark mode toggle may not be working, taking screenshot anyway');
-          await expect(page).toHaveScreenshot('dark-mode-attempt.png', {
-            fullPage: true,
-            animations: 'disabled'
-          });
-        }
-      } else {
-        console.log('Theme toggle not found, skipping dark mode test');
-      }
+      // Take screenshot in dark mode
+      await expect(page).toHaveScreenshot('dark-mode.png', {
+        fullPage: true,
+        animations: 'disabled'
+      });
     });
 
     test('Theme toggle button states', async ({ page }) => {
