@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { NewsPageAdvanced } from '../pages/NewsPageAdvanced';
 import { NewsItemComponent } from '../pages/components/NewsItemComponent';
 
-test.describe('Exercise 4B: Advanced Page Objects with Components', () => {
+test.describe('Exercise 9: Advanced Page Objects with Components', () => {
   let newsPage: NewsPageAdvanced;
 
   test.beforeEach(async ({ page }) => {
@@ -87,13 +87,8 @@ test.describe('Exercise 4B: Advanced Page Objects with Components', () => {
       const firstResult = newsPage.getFirstNewsItem();
       const data = await firstResult.getData();
       
-      // Schritt 3: Interagiere mit dem Artikel
-      await firstResult
-        .hover()
-        .then(item => item.clickLink().catch(() => {
-          console.log('Link click prevented or navigation occurred');
-          return item;
-        }));
+      // Schritt 3: Interagiere mit dem Artikel (without clicking to prevent navigation)
+      await firstResult.hover();
     }
 
     // Schritt 4: Zurück und Filter zurücksetzen

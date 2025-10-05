@@ -1,4 +1,4 @@
-import { test as setup, expect } from '@playwright/test';
+import { test as setup, expect, Page } from '@playwright/test';
 import path from 'path';
 
 const authFile = path.join(__dirname, '../../playwright/.auth/user.json');
@@ -11,9 +11,15 @@ setup.describe('Exercise 3: Authentication Setup', () => {
     await page.waitForLoadState('networkidle');
 
     // Fülle Login-Formular aus
-    const emailInput = page.getByRole('textbox', { name: 'Email address for sign in' });
-    const passwordInput = page.getByRole('textbox', { name: 'Password for sign in Password*' });
-    const submitButton = page.getByRole('button', { name: 'Submit sign in form' });
+    const emailInput = page.getByRole('textbox', {
+      name: 'Email address for sign in',
+    });
+    const passwordInput = page.getByRole('textbox', {
+      name: 'Password for sign in Password*',
+    });
+    const submitButton = page.getByRole('button', {
+      name: 'Submit sign in form',
+    });
 
     await emailInput.fill(process.env.TEST_USER_EMAIL || 'test@example.com');
     await passwordInput.fill(process.env.TEST_USER_PASSWORD || 'password');
@@ -21,12 +27,14 @@ setup.describe('Exercise 3: Authentication Setup', () => {
 
     // Warte auf erfolgreiche Anmeldung (Umleitung zur Homepage)
     await page.waitForURL((url) => !url.pathname.includes('/auth/signin'), {
-      timeout: 10000
+      timeout: 10000,
     });
     await page.waitForLoadState('networkidle');
 
     // Prüfe ob angemeldet - User Profile Menu sollte sichtbar sein
-    const userMenu = page.getByRole('button', { name: /user profile actions menu/i });
+    const userMenu = page.getByRole('button', {
+      name: /user profile actions menu/i,
+    });
     await expect(userMenu).toBeVisible({ timeout: 5000 });
 
     // Speichere Storage State
@@ -47,7 +55,9 @@ test.describe('Exercise 3: Authenticated Tests', () => {
     await page.waitForLoadState('networkidle');
 
     // Prüfe ob angemeldet - User Profile Menu sollte sichtbar sein
-    const userMenu = page.getByRole('button', { name: /user profile actions menu/i });
+    const userMenu = page.getByRole('button', {
+      name: /user profile actions menu/i,
+    });
     await expect(userMenu).toBeVisible();
 
     // Navigiere zu geschütztem Bereich (Settings)
@@ -66,12 +76,16 @@ test.describe('Exercise 3: Authenticated Tests', () => {
     await page.waitForLoadState('networkidle');
 
     // Öffne User-Menü
-    const userMenuButton = page.getByRole('button', { name: /user profile actions menu/i });
+    const userMenuButton = page.getByRole('button', {
+      name: /user profile actions menu/i,
+    });
     await expect(userMenuButton).toBeVisible();
     await userMenuButton.click();
 
     // Prüfe ob Email im Menü angezeigt wird
-    const emailDisplay = page.getByText(process.env.TEST_USER_EMAIL || 'test@example.com');
+    const emailDisplay = page.getByText(
+      process.env.TEST_USER_EMAIL || 'test@example.com',
+    );
     await expect(emailDisplay).toBeVisible();
   });
 
@@ -80,7 +94,9 @@ test.describe('Exercise 3: Authenticated Tests', () => {
     await page.waitForLoadState('networkidle');
 
     // Öffne User-Menü
-    const userMenuButton = page.getByRole('button', { name: /user profile actions menu/i });
+    const userMenuButton = page.getByRole('button', {
+      name: /user profile actions menu/i,
+    });
     await expect(userMenuButton).toBeVisible();
     await userMenuButton.click();
 
@@ -93,7 +109,9 @@ test.describe('Exercise 3: Authenticated Tests', () => {
     await page.waitForURL((url) => url.pathname === '/');
 
     // Prüfe ob abgemeldet - Sign In Button sollte wieder sichtbar sein
-    const signInButton = page.getByRole('button', { name: /sign in to your account/i });
+    const signInButton = page.getByRole('button', {
+      name: /sign in to your account/i,
+    });
     await expect(signInButton).toBeVisible({ timeout: 5000 });
   });
 });
@@ -104,9 +122,15 @@ const adminAuthFile = path.join(__dirname, '../../playwright/.auth/admin.json');
 setup('authenticate as admin', async ({ page }) => {
   await page.goto('/auth/signin');
 
-  const emailInput = page.getByRole('textbox', { name: 'Email address for sign in' });
-  const passwordInput = page.getByRole('textbox', { name: 'Password for sign in Password*' });
-  const submitButton = page.getByRole('button', { name: 'Submit sign in form' });
+  const emailInput = page.getByRole('textbox', {
+    name: 'Email address for sign in',
+  });
+  const passwordInput = page.getByRole('textbox', {
+    name: 'Password for sign in Password*',
+  });
+  const submitButton = page.getByRole('button', {
+    name: 'Submit sign in form',
+  });
 
   // Admin-Credentials
   await emailInput.fill('admin@example.com');
@@ -114,11 +138,13 @@ setup('authenticate as admin', async ({ page }) => {
   await submitButton.click();
 
   // Warte auf erfolgreiche Anmeldung
-  await page.waitForURL((url) => !url.pathname.includes('/auth/signin'), {
-    timeout: 10000
-  }).catch(() => {
-    console.log('Admin login might have failed');
-  });
+  await page
+    .waitForURL((url) => !url.pathname.includes('/auth/signin'), {
+      timeout: 10000,
+    })
+    .catch(() => {
+      console.log('Admin login might have failed');
+    });
 
   // Speichere Admin Storage State
   await page.context().storageState({ path: adminAuthFile });
@@ -139,7 +165,9 @@ test.describe('Admin-specific Tests', () => {
 
       // Prüfe ob Admin-spezifische UI-Elemente vorhanden sind
       const adminIndicator = page.getByText(/admin|administrator/i);
-      const hasAdminUI = await adminIndicator.isVisible({ timeout: 2000 }).catch(() => false);
+      const hasAdminUI = await adminIndicator
+        .isVisible({ timeout: 2000 })
+        .catch(() => false);
 
       expect(hasAdminUI || isOnAdminPage).toBeTruthy();
     } else {
@@ -149,7 +177,7 @@ test.describe('Admin-specific Tests', () => {
 });
 
 // Helper für Session-Validierung
-export async function validateSession(page: any) {
+export async function validateSession(page: Page) {
   // Prüfe ob Session gültig ist
   const response = await page.request.get('/api/auth/session');
 

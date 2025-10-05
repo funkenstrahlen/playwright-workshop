@@ -9,7 +9,7 @@ export class NewsPageAdvanced {
   constructor(page: Page) {
     this.page = page;
     this.searchInput = page.getByRole('textbox', { name: 'Search news articles' });
-    this.newsItems = page.getByRole('listitem');
+    this.newsItems = page.getByRole('article');
   }
 
   // Fluent Navigation
@@ -144,11 +144,11 @@ export class NewsPageAdvanced {
 
   async isLoading(): Promise<boolean> {
     const spinner = this.page.getByRole('progressbar');
-    const spinnerVisible = await spinner.isVisible({ timeout: 100 }).catch(() => false);
+    const spinnerVisible = await spinner.isVisible().catch(() => false);
     if (!spinnerVisible) {
       // Fallback to class-based selectors if progressbar role not found
       const loadingIndicator = this.page.locator('.spinner, .loading');
-      return await loadingIndicator.isVisible({ timeout: 100 }).catch(() => false);
+      return await loadingIndicator.isVisible().catch(() => false);
     }
     return spinnerVisible;
   }
@@ -156,15 +156,13 @@ export class NewsPageAdvanced {
   // Wait helpers
   private async waitForNewsItems(): Promise<this> {
     await this.newsItems.first().waitFor({
-      state: 'visible',
-      timeout: 10000
+      state: 'visible'
     });
     return this;
   }
 
   async waitForSearchResults(): Promise<this> {
     await this.page.waitForLoadState('networkidle');
-    await this.page.waitForTimeout(500);
     return this;
   }
 }

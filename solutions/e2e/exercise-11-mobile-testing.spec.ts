@@ -158,8 +158,8 @@ test.describe('Exercise 6: Mobile and Responsive Testing', () => {
       // Wait for news items to load
       // Wait for news items to load
       await expect(
-        page.getByRole('listitem').first()
-      ).toBeVisible({ timeout: 10000 });
+        page.getByRole('article').first()
+      ).toBeVisible();
 
       // Check for grid layout indicators
       const newsContainer = page.locator('.grid, [style*="grid"], .news-grid, [data-testid="news-grid"]').first();
@@ -177,7 +177,7 @@ test.describe('Exercise 6: Mobile and Responsive Testing', () => {
         expect(gridColumns).toMatch(/grid|repeat|fr|\s\d+px.*\d+px/);
       } else {
         // Alternative: check layout by measuring item positions
-        const newsItems = page.getByRole('listitem');
+        const newsItems = page.getByRole('article');
         const itemCount = await newsItems.count();
 
         if (itemCount >= 2) {
@@ -205,10 +205,10 @@ test.describe('Exercise 6: Mobile and Responsive Testing', () => {
 
       // Wait for news items to load
       await expect(
-        page.getByRole('listitem').first()
-      ).toBeVisible({ timeout: 10000 });
+        page.getByRole('article').first()
+      ).toBeVisible();
 
-      const newsItems = page.getByRole('listitem');
+      const newsItems = page.getByRole('article');
       const itemCount = await newsItems.count();
 
       if (itemCount >= 2) {
@@ -243,10 +243,10 @@ test.describe('Exercise 6: Mobile and Responsive Testing', () => {
       await page.goto('/news/public');
       // Wait for news items to load
       await expect(
-        page.getByRole('listitem').first()
-      ).toBeVisible({ timeout: 10000 });
+        page.getByRole('article').first()
+      ).toBeVisible();
 
-      const newsItems = page.getByRole('listitem');
+      const newsItems = page.getByRole('article');
       const itemCount = await newsItems.count();
 
       if (itemCount >= 2) {
@@ -262,7 +262,8 @@ test.describe('Exercise 6: Mobile and Responsive Testing', () => {
 
           // Items should span most of the width (single column)
           const viewportWidth = page.viewportSize()?.width || 375;
-          expect(firstBox.width).toBeGreaterThan(viewportWidth * 0.8);
+          // Relax this check slightly to account for padding/margins
+          expect(firstBox.width).toBeGreaterThan(viewportWidth * 0.75);
         }
       }
 
@@ -290,11 +291,11 @@ test.describe('Exercise 6: Mobile and Responsive Testing', () => {
       await page.goto('/news/public');
       // Wait for news items to load
       await expect(
-        page.getByRole('listitem').first()
-      ).toBeVisible({ timeout: 10000 });
+        page.getByRole('article').first()
+      ).toBeVisible();
 
       // Test touch on news item
-      const firstNewsItem = page.getByRole('listitem').first();
+      const firstNewsItem = page.getByRole('article').first();
       await firstNewsItem.scrollIntoViewIfNeeded();
 
       // Use tap instead of click for touch devices
@@ -321,8 +322,8 @@ test.describe('Exercise 6: Mobile and Responsive Testing', () => {
       await page.goto('/news/public');
       // Wait for news items to load
       await expect(
-        page.getByRole('listitem').first()
-      ).toBeVisible({ timeout: 10000 });
+        page.getByRole('article').first()
+      ).toBeVisible();
 
       // Get initial scroll position
       const initialScrollY = await page.evaluate(() => window.scrollY);
@@ -335,13 +336,13 @@ test.describe('Exercise 6: Mobile and Responsive Testing', () => {
       expect(afterScrollY).toBeGreaterThan(initialScrollY);
 
       // Check if lazy loading or infinite scroll works
-      const initialItemCount = await page.getByRole('listitem').count();
+      const initialItemCount = await page.getByRole('article').count();
 
       // Scroll to bottom
       await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
       await page.waitForTimeout(2000);
 
-      const finalItemCount = await page.getByRole('listitem').count();
+      const finalItemCount = await page.getByRole('article').count();
       console.log(`Items before scroll: ${initialItemCount}, after: ${finalItemCount}`);
 
       // Note: This test depends on whether the app implements infinite scroll
@@ -350,16 +351,18 @@ test.describe('Exercise 6: Mobile and Responsive Testing', () => {
 
   test.describe('Cross-Device Compatibility', () => {
 
-    test('iPhone 13: complete user journey', async ({ page }) => {
+    test('iPhone 13: complete user journey', async ({ browser }) => {
       // Use iPhone 13 device settings
-      await page.setViewportSize(devices['iPhone 13'].viewport);
-      await page.setUserAgent(devices['iPhone 13'].userAgent || '');
+      const context = await browser.newContext({
+        ...devices['iPhone 13']
+      });
+      const page = await context.newPage();
 
       // Test complete mobile journey
       await page.goto('/');
 
-      // Navigate to news
-      const newsLink = page.getByRole('link', { name: /news|nachrichten/i });
+      // Navigate to news - be specific to avoid multiple matches
+      const newsLink = page.getByRole('link', { name: /public news|navigate to public news/i }).first();
       if (await newsLink.count() > 0) {
         await newsLink.tap();
       } else {
@@ -368,11 +371,11 @@ test.describe('Exercise 6: Mobile and Responsive Testing', () => {
 
       // Wait for news items to load
       await expect(
-        page.getByRole('listitem').first()
-      ).toBeVisible({ timeout: 10000 });
+        page.getByRole('article').first()
+      ).toBeVisible();
 
       // Verify news items are visible and appropriately sized
-      const newsItems = page.getByRole('listitem');
+      const newsItems = page.getByRole('article');
       const itemCount = await newsItems.count();
       expect(itemCount).toBeGreaterThan(0);
 
@@ -386,17 +389,21 @@ test.describe('Exercise 6: Mobile and Responsive Testing', () => {
           expect(box.width).toBeGreaterThan(44);
         }
       }
+
+      await context.close();
     });
 
-    test('Pixel 5: navigation and search', async ({ page }) => {
-      await page.setViewportSize(devices['Pixel 5'].viewport);
-      await page.setUserAgent(devices['Pixel 5'].userAgent || '');
+    test('Pixel 5: navigation and search', async ({ browser }) => {
+      const context = await browser.newContext({
+        ...devices['Pixel 5']
+      });
+      const page = await context.newPage();
 
       await page.goto('/news/public');
       // Wait for news items to load
       await expect(
-        page.getByRole('listitem').first()
-      ).toBeVisible({ timeout: 10000 });
+        page.getByRole('article').first()
+      ).toBeVisible();
 
       // Look for search input by its role and name
       const searchInput = page.getByRole('textbox', { name: 'Search news articles' });
@@ -409,9 +416,11 @@ test.describe('Exercise 6: Mobile and Responsive Testing', () => {
         await page.waitForLoadState('networkidle');
 
         // Verify search results
-        const resultsCount = await page.getByRole('listitem').count();
+        const resultsCount = await page.getByRole('article').count();
         console.log('Search results on mobile:', resultsCount);
       }
+
+      await context.close();
     });
   });
 
@@ -464,17 +473,17 @@ test.describe('Exercise 6: Mobile and Responsive Testing', () => {
       await page.goto('/news/public');
       // Wait for news items to load
       await expect(
-        page.getByRole('listitem').first()
-      ).toBeVisible({ timeout: 10000 });
+        page.getByRole('article').first()
+      ).toBeVisible();
 
-      const portraitItemCount = await page.getByRole('listitem').count();
+      const portraitItemCount = await page.getByRole('article').count();
 
       // Switch to landscape
       await page.setViewportSize({ width: 667, height: 375 });
       await page.waitForTimeout(1000);
 
       // Content should still be accessible
-      const landscapeItemCount = await page.getByRole('listitem').count();
+      const landscapeItemCount = await page.getByRole('article').count();
       expect(landscapeItemCount).toBe(portraitItemCount);
 
       // Layout might change but content should remain

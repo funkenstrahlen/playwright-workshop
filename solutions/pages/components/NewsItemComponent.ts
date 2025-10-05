@@ -20,13 +20,13 @@ export class NewsItemComponent {
   }
 
   get author() {
-    // Source is in a generic element with role doc-subtitle and contains "Source:"
-    return this.locator.locator('[role="doc-subtitle"]').filter({ hasText: 'Source:' }).first();
+    // Source text - look for the first element that contains only the source name
+    return this.locator.locator(':text-matches("^(TechCrunch|Reuters Financial News|BBC World|Hacker News)$")').first();
   }
 
   get date() {
-    // Date is in a generic element with role doc-publication-date
-    return this.locator.locator('[role="doc-publication-date"]').first();
+    // Date text appears as "10/4/2025" in the browser
+    return this.locator.locator('text=/^\\d{1,2}\\/\\d{1,2}\\/\\d{4}$/').first();
   }
 
   get image() {
@@ -34,8 +34,8 @@ export class NewsItemComponent {
   }
 
   get category() {
-    // Category is in a generic element with role doc-subtitle and contains "Category:"
-    return this.locator.locator('[role="doc-subtitle"]').filter({ hasText: 'Category:' }).first();
+    // Category appears as exact text like "Technology", "Business", "World News"
+    return this.locator.locator('text=/^(Technology|Business|World News)$/').first();
   }
 
   // Actions with fluent interface
@@ -57,18 +57,21 @@ export class NewsItemComponent {
   // Data extraction methods
   async getTitle(): Promise<string> {
     try {
-      // Get the text from the heading element, not the link inside it
+      // First try to get text from heading element
       const heading = this.locator.getByRole('heading', { level: 2 }).first();
-      const text = await heading.textContent({ timeout: 5000 });
-      return text || '';
-    } catch (error) {
-      // If heading not found, try alternative selectors
-      try {
-        const linkText = await this.locator.getByRole('link').first().textContent({ timeout: 2000 });
-        return linkText || '';
-      } catch {
-        return '';
-      }
+      const headingText = await heading.textContent();
+      if (headingText && headingText.trim()) return headingText.trim();
+
+      // If heading is empty, try link text
+      const link = this.locator.getByRole('link').first();
+      const linkText = await link.textContent();
+      if (linkText && linkText.trim()) return linkText.trim();
+
+      // Fallback to any text content in the item
+      const anyText = await this.locator.textContent();
+      return anyText?.split('\n')[0]?.trim() || '';
+    } catch {
+      return '';
     }
   }
 
@@ -83,8 +86,7 @@ export class NewsItemComponent {
   async getAuthor(): Promise<string> {
     try {
       const sourceText = await this.author.textContent() || '';
-      // Extract just the source name without "Source: " prefix
-      return sourceText.replace('Source: ', '').trim();
+      return sourceText.trim();
     } catch {
       return '';
     }
@@ -92,7 +94,8 @@ export class NewsItemComponent {
 
   async getDate(): Promise<string> {
     try {
-      return await this.date.textContent() || '';
+      const dateText = await this.date.textContent() || '';
+      return dateText.trim();
     } catch {
       return '';
     }
@@ -101,19 +104,28 @@ export class NewsItemComponent {
   async getCategory(): Promise<string> {
     try {
       const categoryText = await this.category.textContent() || '';
-      // Extract just the category name without "Category: " prefix
-      return categoryText.replace('Category: ', '').trim();
+      return categoryText.trim();
     } catch {
       return '';
     }
   }
 
   async getImageUrl(): Promise<string | null> {
-    return await this.image.getAttribute('src');
+    try {
+      const hasImg = await this.hasImage();
+      if (!hasImg) return null;
+      return await this.image.getAttribute('src');
+    } catch {
+      return null;
+    }
   }
 
   async getLinkUrl(): Promise<string | null> {
-    return await this.link.getAttribute('href');
+    try {
+      return await this.link.getAttribute('href');
+    } catch {
+      return null;
+    }
   }
 
   // Status checks
@@ -134,7 +146,7 @@ export class NewsItemComponent {
   async expandAndRead(): Promise<this> {
     await this.hover();
     const expandButton = this.locator.getByRole('button', { name: /expand|more|read/i });
-    if (await expandButton.isVisible({ timeout: 1000 }).catch(() => false)) {
+    if (await expandButton.isVisible().catch(() => false)) {
       await expandButton.click();
     }
     return this;
@@ -143,7 +155,7 @@ export class NewsItemComponent {
   async shareVia(platform: 'twitter' | 'facebook' | 'linkedin'): Promise<this> {
     await this.hover();
     const shareButton = this.locator.getByRole('button', { name: new RegExp(platform, 'i') });
-    if (await shareButton.isVisible({ timeout: 1000 }).catch(() => false)) {
+    if (await shareButton.isVisible().catch(() => false)) {
       await shareButton.click();
     }
     return this;

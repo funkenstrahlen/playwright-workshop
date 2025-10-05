@@ -106,8 +106,8 @@ test.describe('Exercise 7: Visual Regression Testing', () => {
 
       // Wait for news items to load
       await expect(
-      page.getByRole('article').or(page.getByRole('listitem')).first()
-    ).toBeVisible({ timeout: 10000 });
+      page.getByRole('article').first()
+    ).toBeVisible();
       await page.waitForLoadState('networkidle');
 
       // Take screenshot of the news grid/list
@@ -129,8 +129,8 @@ test.describe('Exercise 7: Visual Regression Testing', () => {
     test('Individual news card with masked dynamic content', async ({ page }) => {
       await page.goto('/news/public');
       await expect(
-      page.getByRole('article').or(page.getByRole('listitem')).first()
-    ).toBeVisible({ timeout: 10000 });
+      page.getByRole('article').first()
+    ).toBeVisible();
 
       const firstNewsCard = page.getByRole('listitem').first();
 
@@ -310,8 +310,8 @@ test.describe('Exercise 7: Visual Regression Testing', () => {
         await page.setViewportSize({ width: viewport.width, height: viewport.height });
         await page.goto('/news/public');
         await expect(
-      page.getByRole('article').or(page.getByRole('listitem')).first()
-    ).toBeVisible({ timeout: 10000 });
+      page.getByRole('article').first()
+    ).toBeVisible();
         await page.waitForLoadState('networkidle');
 
         await expect(page).toHaveScreenshot(`news-page-${viewport.name}.png`, {
@@ -327,8 +327,8 @@ test.describe('Exercise 7: Visual Regression Testing', () => {
     test('Cross-browser consistency', async ({ page, browserName }) => {
       await page.goto('/news/public');
       await expect(
-      page.getByRole('article').or(page.getByRole('listitem')).first()
-    ).toBeVisible({ timeout: 10000 });
+      page.getByRole('article').first()
+    ).toBeVisible();
       await page.waitForLoadState('networkidle');
 
       await expect(page).toHaveScreenshot(`news-page-${browserName}.png`, {
@@ -456,7 +456,7 @@ test.describe('Exercise 7: Visual Regression Testing', () => {
         .or(page.locator('.loading'))
         .or(page.locator('.spinner'))
         .first()
-    ).toBeVisible({ timeout: 2000 });
+    ).toBeVisible();
         await expect(page).toHaveScreenshot('loading-state.png', {
           animations: 'disabled'
         });
