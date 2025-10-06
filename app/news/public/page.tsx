@@ -103,7 +103,7 @@ export default function PublicNewsPage() {
           <Card
             key={index}
             className="overflow-hidden"
-            role="listitem"
+            role="article"
             aria-labelledby={`news-title-${index}`}
             aria-label={`News article: ${item.title}`}
           >
