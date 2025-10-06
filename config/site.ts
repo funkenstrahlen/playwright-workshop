@@ -20,6 +20,10 @@ export const siteConfig = {
       label: 'Clock',
       href: '/clock',
     },
+    {
+      label: 'File Download',
+      href: '/file-download',
+    },
   ],
   navMenuItems: [
     {
@@ -37,6 +41,10 @@ export const siteConfig = {
     {
       label: 'Clock',
       href: '/clock',
+    },
+    {
+      label: 'File Download',
+      href: '/file-download',
     },
     {
       label: 'Settings',
