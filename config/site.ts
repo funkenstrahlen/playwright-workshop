@@ -24,6 +24,10 @@ export const siteConfig = {
       label: 'File Download',
       href: '/file-download',
     },
+    {
+      label: 'Fixtures Demo',
+      href: '/fixtures-demo',
+    },
   ],
   navMenuItems: [
     {
@@ -45,6 +49,10 @@ export const siteConfig = {
     {
       label: 'File Download',
       href: '/file-download',
+    },
+    {
+      label: 'Fixtures Demo',
+      href: '/fixtures-demo',
     },
     {
       label: 'Settings',
