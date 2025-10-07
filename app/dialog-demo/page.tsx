@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { Button } from '@heroui/button';
 import { Card, CardBody, CardHeader } from '@heroui/card';
-import { Divider } from '@heroui/divider';
 
 import { title, subtitle } from '@/components/primitives';
 
@@ -58,21 +57,26 @@ export default function DialogDemoPage() {
       z-index: 1000;
     `;
 
+    // Detect current theme by checking if dark class is present on html element
+    const isDarkMode = document.documentElement.classList.contains('dark');
+
     const dialog = document.createElement('div');
     dialog.style.cssText = `
-      background: white;
+      background: ${isDarkMode ? '#18181b' : 'white'};
+      color: ${isDarkMode ? '#f4f4f5' : '#09090b'};
       padding: 20px;
       border-radius: 8px;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       max-width: 400px;
       width: 90%;
+      border: ${isDarkMode ? '1px solid #27272a' : '1px solid #e4e4e7'};
     `;
 
     dialog.innerHTML = `
-      <h3 style="margin-top: 0;">Custom Dialog</h3>
-      <p>This is a custom modal dialog created with JavaScript.</p>
+      <h3 style="margin-top: 0; color: ${isDarkMode ? '#f4f4f5' : '#09090b'};">Custom Dialog</h3>
+      <p style="color: ${isDarkMode ? '#a1a1aa' : '#71717a'};">This is a custom modal dialog created with JavaScript.</p>
       <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
-        <button id="custom-cancel" style="padding: 8px 16px; border: 1px solid #ccc; background: white; border-radius: 4px; cursor: pointer;">Cancel</button>
+        <button id="custom-cancel" style="padding: 8px 16px; border: 1px solid ${isDarkMode ? '#52525b' : '#d4d4d8'}; background: ${isDarkMode ? '#27272a' : 'white'}; color: ${isDarkMode ? '#f4f4f5' : '#09090b'}; border-radius: 4px; cursor: pointer;">Cancel</button>
         <button id="custom-ok" style="padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">OK</button>
       </div>
     `;
