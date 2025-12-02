@@ -19,7 +19,7 @@ const getHandler = async (_req: NextRequest, session: Session) => {
       return jsonNotFound('User');
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     const { passwordHash: _, ...userData } = user;
 
     return jsonSuccess(userData);
@@ -48,7 +48,7 @@ const putHandler = async (req: NextRequest, session: Session) => {
 
     const updatedUser = await updateUserProfile(session.user.id, { name });
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     const { passwordHash: _, ...userData } = updatedUser;
 
     return jsonSuccess(userData);

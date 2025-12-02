@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 
     const newUser = await addUser({ name, email, password });
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     const { passwordHash: _, ...userWithoutPassword } = newUser;
 
     return jsonSuccess(

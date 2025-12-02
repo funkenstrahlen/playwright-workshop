@@ -64,7 +64,7 @@ const testWithHelpers = base.extend<FixturesDemo>({
     await expect(page.getByText(/\d+ users/)).toBeVisible();
 
     const userPage = {
-      addUser: async (user) => {
+      addUser: async (user: { name: string; email: string; role: string }) => {
         await page.getByLabel('Name').fill(user.name);
         await page.getByLabel('Email').fill(user.email);
         await page.getByLabel('Role').selectOption(user.role);
