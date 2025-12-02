@@ -13,7 +13,7 @@
     "**/node_modules": true,
     "**/.next": true,
     "next-env.d.ts": true,
-    "**/playwright-report": true,
+    // "**/playwright-report": true,
     "**/test-results": true
   },
   "chat.mcp.discovery.enabled": {
