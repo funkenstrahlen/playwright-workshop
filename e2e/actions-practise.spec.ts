@@ -21,15 +21,15 @@ test('search for Ukraine article', async ({ page }) => {
   await page
     .getByRole('textbox', { name: 'Search news articles' })
     .fill('Ukraine');
-  await page
-    .getByRole('textbox', { name: 'Search news articles' })
-    .press('Enter');
 
-  const article = page
+  const articles = page
     .getByRole('list', { name: 'News Articles' })
-    .getByRole('article', { name: 'Ukraine' })
-    .first();
+    .getByRole('article', { name: 'Ukraine' });
 
+  const article = articles.first();
+  const numberOfArticles = await articles.count();
+
+  expect(numberOfArticles).toBeGreaterThan(0);
   await expect(article).toBeVisible();
   await expect(article.getByRole('heading')).toContainText('Ukraine');
 });
