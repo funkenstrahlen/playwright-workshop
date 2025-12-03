@@ -1,4 +1,5 @@
 import { Locator, Page } from '@playwright/test';
+import { ArticleItem } from './article-item.pom';
 
 export class PublicNewsPage {
   private readonly page: Page;
@@ -30,7 +31,9 @@ export class PublicNewsPage {
   }
 
   async getArticles() {
-    return await this.articles.all();
+    return (await this.articles.all()).map(
+      (article: Locator) => new ArticleItem(article),
+    );
   }
 
   async getArticleCount() {
@@ -38,18 +41,18 @@ export class PublicNewsPage {
   }
 
   async getArticle(index: number) {
-    return await this.articles.nth(index);
+    return new ArticleItem(this.articles.nth(index));
   }
 
   async getFirstArticle() {
-    return await this.articles.first();
+    return new ArticleItem(this.articles.first());
   }
 
   async getLastArticle() {
-    return await this.articles.last();
+    return new ArticleItem(this.articles.last());
   }
 
   async getArticleByText(text: string) {
-    return await this.articles.filter({ hasText: text });
+    return new ArticleItem(this.articles.filter({ hasText: text }));
   }
 }
