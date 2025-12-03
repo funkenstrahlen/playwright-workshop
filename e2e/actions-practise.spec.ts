@@ -15,21 +15,21 @@ test('toggle theme', async ({ page }) => {
   ).toBeVisible();
 });
 
-test('search for Ukraine article', async ({ page }) => {
+test('search for Test article', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('menuitem', { name: 'Navigate to Public News' }).click();
   await page
     .getByRole('textbox', { name: 'Search news articles' })
-    .fill('Ukraine');
+    .fill('Test');
 
   const articles = page
     .getByRole('list', { name: 'News Articles' })
-    .getByRole('article', { name: 'Ukraine' });
+    .getByRole('article', { name: 'Test' });
 
   const article = articles.first();
   const numberOfArticles = await articles.count();
 
   expect(numberOfArticles).toBeGreaterThan(0);
   await expect(article).toBeVisible();
-  await expect(article.getByRole('heading')).toContainText('Ukraine');
+  await expect(article.getByRole('heading')).toContainText('Test');
 });
