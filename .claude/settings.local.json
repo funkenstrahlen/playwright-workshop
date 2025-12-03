@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_wait_for",
+      "Bash(npx playwright test:*)",
+      "mcp__playwright-test__test_run",
+      "mcp__playwright-test__test_debug"
+    ],
+    "deny": [],
+    "ask": []
+  },
+  "enabledMcpjsonServers": [
+    "playwright-test"
+  ]
+}
