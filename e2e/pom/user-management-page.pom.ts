@@ -24,6 +24,12 @@ export class UserManagementPage {
   async goto() {
     await this.page.goto('/fixtures-demo');
     await this.page.waitForURL('/fixtures-demo');
+    await this.page.waitForFunction(() => {
+      const countElement = document.querySelector('[data-testid="user-count"]');
+      const text = countElement?.textContent || '';
+      const count = parseInt(text.replace(' users', ''));
+      return !isNaN(count) && count >= 2;
+    });
   }
 
   async createUser(user: { name: string; email: string; role: string }) {
@@ -31,6 +37,10 @@ export class UserManagementPage {
     await this.emailInput.fill(user.email);
     await this.roleSelect.selectOption({ value: user.role });
     await this.submitButton.click();
+    await this.page.waitForFunction(() => {
+      const button = document.querySelector('[data-testid="submit-user-button"]');
+      return button && !button.hasAttribute('disabled');
+    });
   }
 
   async editUser(
