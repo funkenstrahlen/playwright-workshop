@@ -17,21 +17,15 @@ export const test = base.extend<AuthenticationFixture>({
       await loginPage.login(email, password);
     });
   },
-  createUser: async ({ page }, use) => {
+  createUser: async ({ userManagementPage }, use) => {
     await use(async (user: { name: string; email: string; role: string }) => {
-      await page.goto('/fixtures-demo');
-      await page.getByLabel('Name').fill(user.name);
-      await page.getByLabel('Email').fill(user.email);
-      await page.getByLabel('Role').selectOption({ value: user.role });
-      await page.getByRole('button', { name: 'Add User' }).click();
+      await userManagementPage.goto();
+      await userManagementPage.createUser(user);
     });
   },
-  countUsers: async ({ page }, use) => {
+  countUsers: async ({ userManagementPage }, use) => {
     await use(async () => {
-      let userCountString =
-        (await page.getByTestId('user-count').textContent()) || '';
-      userCountString = userCountString?.replace(' users', '');
-      return parseInt(userCountString);
+      return userManagementPage.getUserCount();
     });
   },
 });
