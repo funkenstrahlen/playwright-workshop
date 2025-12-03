@@ -1,5 +1,10 @@
 import { mockNewsData } from '@/solutions/e2e/mocks/news-mocks';
 import { test, expect } from './fixtures/base.fixture';
+import { RSSItem } from '@/types/rss';
+
+interface NewsApiResponse {
+  items: RSSItem[];
+}
 
 test.describe('Public News', () => {
   test.describe('no mocking', () => {
@@ -64,6 +69,20 @@ test.describe('Public News', () => {
       expect(await publicNewsPage.getArticleCount()).toBeGreaterThan(0);
       const article = await publicNewsPage.getFirstArticle();
       expect(await article.getHeader()).toContain('Test');
+    });
+
+    test('should correctly count news items', async ({
+      publicNewsPage,
+      page,
+    }) => {
+      const articlesResponsePromise = page.waitForResponse('/api/news/public');
+      await publicNewsPage.goto();
+      const articlesResponse = await articlesResponsePromise;
+      const articlesData = (await articlesResponse.json()) as NewsApiResponse;
+      const expectedArticleCount = articlesData.items.length;
+
+      expect(await publicNewsPage.getArticleCount()).toBe(expectedArticleCount);
+      expect(articlesResponse.status()).toBe(200);
     });
   });
 });
