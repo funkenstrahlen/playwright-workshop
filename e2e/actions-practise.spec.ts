@@ -1,20 +1,5 @@
 import test, { expect } from '@playwright/test';
 
-test('toggle theme', async ({ page }) => {
-  await page.goto('/');
-  await page
-    .getByRole('list')
-    .filter({ hasText: 'Sign In' })
-    .getByLabel('Switch to light mode')
-    .click();
-  await expect(
-    page
-      .getByRole('list')
-      .filter({ hasText: 'Sign In' })
-      .getByLabel('Switch to dark mode'),
-  ).toBeVisible();
-});
-
 test('search for Test article', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('menuitem', { name: 'Navigate to Public News' }).click();

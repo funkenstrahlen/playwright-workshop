@@ -1,7 +1,9 @@
 import test, { expect } from '@playwright/test';
 
 test.describe('Authentication Flow', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, browser }) => {
+    // clear context to avoid cached auth state
+    await browser.newContext();
     await page.goto('/auth/signin');
   });
 

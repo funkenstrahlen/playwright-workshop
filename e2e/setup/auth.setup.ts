@@ -24,5 +24,7 @@ setup('should sign in with valid credentials', async ({ page }) => {
   await password.fill(userPassword!);
   await page.getByRole('button', { name: 'Submit sign in form' }).click();
 
+  await expect(page).toHaveURL('/');
+
   await page.context().storageState({ path: userFile });
 });
