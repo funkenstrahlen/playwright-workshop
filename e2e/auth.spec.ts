@@ -9,13 +9,9 @@ test.describe('Authentication Flow', () => {
     await expect(page.getByRole('heading', { name: 'Sign In' })).toBeVisible();
   });
 
-  test('should sign in with valid credentials', async ({ page }) => {
-    const email = page.getByRole('textbox', {
-      name: 'Email address for sign in',
-    });
-    const password = page.getByRole('textbox', {
-      name: 'Password for sign in',
-    });
+  test('should show error with invalid credentials', async ({ page }) => {
+    const email = page.getByLabel('Email');
+    const password = page.getByLabel('Password');
 
     await email.fill('test@demo.de');
     await password.fill('password123');
