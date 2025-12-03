@@ -5,6 +5,7 @@ export class PublicNewsPage {
   private readonly page: Page;
   private readonly searchInput: Locator;
   private readonly articles: Locator;
+  readonly errorAlert: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -14,6 +15,7 @@ export class PublicNewsPage {
     this.articles = page
       .getByRole('list', { name: 'News Articles' })
       .getByRole('article');
+    this.errorAlert = page.getByText('Failed to load RSS feeds');
   }
 
   async goto() {
