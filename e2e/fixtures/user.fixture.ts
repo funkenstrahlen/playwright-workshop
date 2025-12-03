@@ -8,7 +8,7 @@ interface UserFixture {
 }
 
 export const test = base.extend<UserFixture>({
-  user: async ({}, use) => {
+  user: async ({ page }, use) => {
     const username = process.env.TEST_USERNAME || '';
     const userPassword = process.env.TEST_PASSWORD || '';
 
