@@ -12,6 +12,9 @@ test.describe('Private News Access', () => {
   });
 
   test.describe('Unauthenticated Access', () => {
+    // this is how we reset the login state to simulate an unauthenticated user
+    // it is better to use it like this instead of browser.newContext() because
+    // it preserves other context settings like viewport, locale, timezone, etc.
     test.use({ storageState: { cookies: [], origins: [] } });
 
     test('should deny access to private news for unauthenticated users', async ({
