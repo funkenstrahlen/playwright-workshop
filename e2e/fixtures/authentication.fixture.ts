@@ -19,7 +19,6 @@ export const test = base.extend<AuthenticationFixture>({
   },
   createUser: async ({ userManagementPage }, use) => {
     await use(async (user: { name: string; email: string; role: string }) => {
-      await userManagementPage.goto();
       await userManagementPage.createUser(user);
     });
   },
