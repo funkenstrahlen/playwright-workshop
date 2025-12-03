@@ -71,12 +71,17 @@ test.describe('Public News', () => {
     publicNewsPage,
     page,
   }) => {
+    // we have to define the wait for response before the goto call because the page will make the request as soon as we go to the page
     const articlesResponsePromise = page.waitForResponse('/api/news/public');
     await publicNewsPage.goto();
+    // now we wait for the response to be fulfilled
     const articlesResponse = await articlesResponsePromise;
+
+    // then we can get the data from the response
     const articlesData = (await articlesResponse.json()) as NewsApiResponse;
     const expectedArticleCount = articlesData.items.length;
 
+    // and compare the data with the page object that the user sees
     expect(await publicNewsPage.getArticleCount()).toBe(expectedArticleCount);
     expect(articlesResponse.status()).toBe(200);
   });
