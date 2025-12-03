@@ -1,4 +1,4 @@
-import { test as base, expect } from '@playwright/test';
+import { test as base } from './pages.fixture';
 
 interface AuthenticationFixture {
   loginUser: (email: string, password: string) => Promise<void>;
@@ -11,14 +11,10 @@ interface AuthenticationFixture {
 }
 
 export const test = base.extend<AuthenticationFixture>({
-  loginUser: async ({ page }, use) => {
+  loginUser: async ({ loginPage }, use) => {
     await use(async (email: string, password: string) => {
-      await page.goto('/auth/signin');
-      await page.getByLabel('Email').fill(email);
-      await page.getByLabel('Password').fill(password);
-      await page.getByRole('button', { name: 'Submit sign in form' }).click();
-
-      await expect(page).toHaveURL('/');
+      await loginPage.goto();
+      await loginPage.login(email, password);
     });
   },
   createUser: async ({ page }, use) => {
